@@ -1,0 +1,15 @@
+{
+  "name": "angular-entity",
+  "repo": "components/angular-entity",
+  "version": "0.0.1",
+  "main": "angular-entity.js",
+  "scripts": [
+    "angular-entity.js"
+  ],
+  "files": [
+    "angular-entity.min.js"
+  ],
+  "dependencies": {
+    "components/angular.js": "1.4.0"
+  }
+}

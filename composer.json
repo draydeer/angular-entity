@@ -1,0 +1,20 @@
+{
+  "name": "components/angular-entity",
+  "description": "Entity module for AngularJS providing simple REST client and model-collection agent.",
+  "type": "component",
+  "homepage": "http://angularjs.org",
+  "require": {
+    "components/angular.js": "1.4.0"
+  },
+  "extra": {
+    "component": {
+      "name": "angular-entity",
+      "scripts": [
+        "angular-entity.js"
+      ],
+      "files": [
+        "angular-entity.min.js"
+      ]
+    }
+  }
+}
