@@ -667,7 +667,7 @@
 
                             var promises = [];
 
-                            forEach(k ? [this.get(k)] : this.get(), function (v) {
+                            forEach(k !== void 0 ? [this.get(k)] : this.get(), function (v) {
                                 promises.push($q(function (resolve, reject) {
 
                                     // store $$new state of model temporary
@@ -709,7 +709,7 @@
                         this.set = function (
                             k, v
                         ) {
-                            return context.set(key + '.' + k, v) && this;
+                            return context.set(key + '.' + k, v) ? this : this;
                         };
 
                         this.collection = function (
