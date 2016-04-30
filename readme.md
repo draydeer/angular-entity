@@ -33,7 +33,7 @@ app.
                         delete: 'delete'
                     }
                 )
-                    .setOneMapper('key');
+                    .setModelMapper('key');
 
                 collection.all().then(
                     function (res) {
