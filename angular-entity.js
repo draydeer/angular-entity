@@ -173,9 +173,7 @@
                                     if (method in Route.prototype) {
                                         route = new Route(route);
 
-                                        routes[k] = this[k] = function (
-                                            params, data, options
-                                        ) {
+                                        routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
                                                 route[method](params, data, options).then(
                                                     function (res) {
@@ -366,26 +364,26 @@
                             return this;
                         },
 
-                        setDel: function (value) {
-                            this.delMethod = value;
+                        setDel: function (func) {
+                            this.delMethod = func;
 
                             return this;
                         },
 
-                        setOne: function (value) {
-                            this.oneMethod = value;
+                        setOne: function (func) {
+                            this.oneMethod = func;
 
                             return this;
                         },
 
-                        setPut: function (create, update) {
-                            this.putMethods = [create, update];
+                        setPut: function (funcCreate, funcUpdate) {
+                            this.putMethods = [funcCreate, funcUpdate];
 
                             return this;
                         },
 
                         /**
-                         * Set model mapper. If is [string] it will be used for extracting collection key.
+                         * Set model mapper. [string] will be used as collection key.
                          *
                          * @param value
                          * @returns {EntityCollection}
@@ -724,3 +722,7 @@
         );
 
 })(window, window.angular);
+
+if (typeof module !== 'undefined' && typeof exports !== 'undefined' && module.exports === exports){
+    module.exports = 'angular-entity';
+}

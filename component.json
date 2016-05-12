@@ -1,6 +1,6 @@
 {
   "name": "angular-entity",
-  "repo": "components/angular-entity",
+  "repo": "draydeer/angular-entity",
   "version": "0.0.1",
   "main": "angular-entity.js",
   "scripts": [

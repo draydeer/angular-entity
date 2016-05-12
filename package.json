@@ -1,0 +1,22 @@
+{
+  "name": "angular-entity",
+  "description": "Entity module for AngularJS providing simple REST client and models collection wrapper.",
+  "version": "1.4.0",
+  "filename": "angular-entity.min.js",
+  "main": "./angular-entity.min.js",
+  "homepage": "https://github.com/draydeer/angular-entity",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/draydeer/angular-entity.git"
+  },
+  "engines": {
+    "node": ">= 0.9"
+  },
+  "peerDependencies": {
+    "angular": ">=1.4.0"
+  },
+  "devDependencies": {
+
+  },
+  "license": "MIT"
+}

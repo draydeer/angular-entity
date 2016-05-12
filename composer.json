@@ -1,6 +1,6 @@
 {
-  "name": "components/angular-entity",
-  "description": "Entity module for AngularJS providing simple REST client and model-collection agent.",
+  "name": "draydeer/angular-entity",
+  "description": "Entity module for AngularJS providing simple REST client and models collection wrapper.",
   "type": "component",
   "homepage": "http://angularjs.org",
   "require": {
