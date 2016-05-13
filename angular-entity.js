@@ -19,9 +19,11 @@
                         extend = angular.extend,
                         copy = angular.copy;
 
-                    function Route(route, compileStrictly)
+                    function Route(route, compileStrictly, appendParams)
                     {
+                        this.appendParams = appendParams === true;
                         this.compileStrictly = compileStrictly !== false;
+                        this.route = route;
 
                         var match,
                             re = /[^\\]:([\w\$]+)/g,
@@ -32,8 +34,6 @@
                         }
 
                         this.routeParams = routeParams;
-
-                        this.route = route;
 
                         route = route.replace(/([^\\]):([\w\$]+)/g, "$1!@$#$2#$@!");
 
@@ -50,17 +50,21 @@
 
                     Route.prototype = {
 
-                        compileQuery: function(params) {
-                            var compileStrictly = this.compileStrictly,
+                        compileQuery: function (params) {
+                            var appendParams = this.appendParams,
+                                compileStrictly = this.compileStrictly,
                                 path = this.path,
                                 route = this.route,
-                                q = this.q;
+                                q = this.q,
+                                used = {};
 
-                            if (params) {
+                            if (angular.isObject(params)) {
                                 if (path) {
                                     forEach(this.routeParams, function (v) {
                                         if (v in params) {
                                             path = path.replace('!@$#' + v + '#$@!', params[v]);
+
+                                            used[v] = true;
                                         } else {
                                             if (compileStrictly) {
                                                 throw new Error('Path parameter missing: ' + v + ' on ' + route);
@@ -73,10 +77,22 @@
                                     forEach(this.routeParams, function (v) {
                                         if (v in params) {
                                             q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v]));
+
+                                            used[v] = true;
                                         } else {
                                             if (compileStrictly) {
                                                 throw new Error('Path parameter missing: ' + v + ' on ' + route);
                                             }
+                                        }
+                                    });
+                                }
+
+                                if (appendParams) {
+                                    forEach(params, function (v, k) {
+                                        if (! (k in used)) {
+                                            q || (q = '');
+
+                                            q = q + '&' + k + '=' + encodeURIComponent(v);
                                         }
                                     });
                                 }
@@ -168,7 +184,9 @@
                         addRoutes: function (routes) {
                             if (angular.isObject(routes)) {
                                 forEach(routes, function (v, k) {
-                                    var errorHandler,
+                                    var appendParams = false,
+                                        compileStrictly = true,
+                                        errorHandler,
                                         method,
                                         route,
                                         successHandler;
@@ -182,9 +200,12 @@
                                                 throw new Error('Route is not defined: ' + k);
                                             }
 
+                                            appendParams = v[2] === true;
                                             method = v[1] || 'get';
                                             route = this.base + '/' + v[0];
                                         } else {
+                                            appendParams = v.appendParams === true;
+                                            compileStrictly = v.compileStrictly !== false;
                                             method = v.method || 'get';
 
                                             if (v.route === void 0) {
@@ -199,7 +220,7 @@
                                     }
 
                                     if (method in Route.prototype) {
-                                        route = new Route(route);
+                                        route = new Route(route, compileStrictly, appendParams);
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
