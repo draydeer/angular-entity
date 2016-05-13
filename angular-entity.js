@@ -19,11 +19,11 @@
                         extend = angular.extend,
                         copy = angular.copy;
 
-                    function Route(route, compileStrictly, appendParams, env)
+                    function Route(route, compileStrictly, appendParams, defaults)
                     {
                         this.appendParams = appendParams === true;
                         this.compileStrictly = compileStrictly !== false;
-                        this.env = env;
+                        this.defaults = defaults;
                         this.route = route;
 
                         var match,
@@ -58,6 +58,16 @@
                                 route = this.route,
                                 q = this.q,
                                 used = {};
+
+                            if (angular.isObject(params) && this.defaults) {
+                                params = copy(params);
+
+                                for (var k in this.defaults) {
+                                    k in params || (params[k] = this.defaults[k]);
+                                }
+                            } else {
+                                params = this.defaults;
+                            }
 
                             if (angular.isObject(params)) {
                                 if (path) {
@@ -139,6 +149,7 @@
                     function Resty(base, routes)
                     {
                         this.base = base;
+                        this.defaults = null;
                         this.deferred = [];
                         this.errorHandler = null;
                         this.queued = false;
@@ -151,6 +162,12 @@
                     }
 
                     Resty.prototype = {
+
+                        setDefaults: function (value) {
+                            this.defaults = angular.isObject(value) ? value : null;
+
+                            return this;
+                        },
 
                         setErrorHandler: function (value) {
                             this.errorHandler = angular.isFunction(value) ? value : null;
@@ -187,7 +204,7 @@
                                 forEach(routes, function (v, k) {
                                     var appendParams = false,
                                         compileStrictly = true,
-                                        env = {},
+                                        defaults = {},
                                         errorHandler,
                                         method,
                                         route,
@@ -203,13 +220,13 @@
                                             }
 
                                             appendParams = v[2] === true;
-                                            env = angular.isObject(v[3]) ? v[3] : {};
+                                            defaults = angular.isObject(v[3]) ? v[3] : this.defaults;
                                             method = v[1] || 'get';
                                             route = this.base + '/' + v[0];
                                         } else {
                                             appendParams = v.appendParams === true;
                                             compileStrictly = v.compileStrictly !== false;
-                                            env = angular.isObject(v.env) ? v.env : {};
+                                            defaults = angular.isObject(v.defaults) ? v.defaults : this.defaults;
                                             method = v.method || 'get';
 
                                             if (v.route === void 0) {
@@ -224,7 +241,7 @@
                                     }
 
                                     if (method in Route.prototype) {
-                                        route = new Route(route, compileStrictly, appendParams, env);
+                                        route = new Route(route, compileStrictly, appendParams, defaults);
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
