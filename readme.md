@@ -1,5 +1,5 @@
 ````javascript
-var app = angular.module('app', ['ngResty', 'ngEntity']);
+var app = angular.module('app', ['Resty', 'Entity']);
 
 app.
     controller(

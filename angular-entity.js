@@ -7,7 +7,7 @@
     var $restyMinErr = angular.$$minErr('$resty');
 
     angular
-        .module('ngResty', ['ng'])
+        .module('Resty', ['ng'])
         .factory(
             '$resty',
             [
@@ -19,10 +19,11 @@
                         extend = angular.extend,
                         copy = angular.copy;
 
-                    function Route(route, compileStrictly, appendParams)
+                    function Route(route, compileStrictly, appendParams, env)
                     {
                         this.appendParams = appendParams === true;
                         this.compileStrictly = compileStrictly !== false;
+                        this.env = env;
                         this.route = route;
 
                         var match,
@@ -186,6 +187,7 @@
                                 forEach(routes, function (v, k) {
                                     var appendParams = false,
                                         compileStrictly = true,
+                                        env = {},
                                         errorHandler,
                                         method,
                                         route,
@@ -201,11 +203,13 @@
                                             }
 
                                             appendParams = v[2] === true;
+                                            env = angular.isObject(v[3]) ? v[3] : {};
                                             method = v[1] || 'get';
                                             route = this.base + '/' + v[0];
                                         } else {
                                             appendParams = v.appendParams === true;
                                             compileStrictly = v.compileStrictly !== false;
+                                            env = angular.isObject(v.env) ? v.env : {};
                                             method = v.method || 'get';
 
                                             if (v.route === void 0) {
@@ -220,7 +224,7 @@
                                     }
 
                                     if (method in Route.prototype) {
-                                        route = new Route(route, compileStrictly, appendParams);
+                                        route = new Route(route, compileStrictly, appendParams, env);
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
@@ -280,7 +284,7 @@
     var $entityMinErr = angular.$$minErr('$entity');
 
     angular
-        .module('ngEntity', ['ng', 'ngResty'])
+        .module('Entity', ['ng', 'Resty'])
         .factory(
             '$entity',
             [
