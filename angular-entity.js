@@ -59,11 +59,13 @@
                                 q = this.q,
                                 used = {};
 
-                            if (angular.isObject(params) && this.defaults) {
-                                params = copy(params);
+                            if (angular.isObject(params)) {
+                                if (this.defaults) {
+                                    params = copy(params);
 
-                                for (var k in this.defaults) {
-                                    k in params || (params[k] = this.defaults[k]);
+                                    for (var k in this.defaults) {
+                                        k in params || (params[k] = this.defaults[k]);
+                                    }
                                 }
                             } else {
                                 params = this.defaults;
