@@ -23,6 +23,20 @@
                     {
                         this.compileStrictly = compileStrictly !== false;
 
+                        var match,
+                            re = /[^\\]:([\w\$]+)/g,
+                            routeParams = [];
+
+                        while (match = re.exec(route)) {
+                            routeParams.push(match[1]);
+                        }
+
+                        this.routeParams = routeParams;
+
+                        this.route = route;
+
+                        route = route.replace(/([^\\]):([\w\$]+)/g, "$1!@$#$2#$@!");
+
                         var q = route.indexOf('?');
 
                         if (q !== - 1) {
@@ -37,19 +51,33 @@
                     Route.prototype = {
 
                         compileQuery: function(params) {
-                            var path = this.path,
+                            var compileStrictly = this.compileStrictly,
+                                path = this.path,
+                                route = this.route,
                                 q = this.q;
 
                             if (params) {
                                 if (path) {
-                                    forEach(params, function (v, k) {
-                                        path = path.replace(':' + k, v);
+                                    forEach(this.routeParams, function (v) {
+                                        if (v in params) {
+                                            path = path.replace('!@$#' + v + '#$@!', params[v]);
+                                        } else {
+                                            if (compileStrictly) {
+                                                throw new Error('Path parameter missing: ' + v + ' on ' + route);
+                                            }
+                                        }
                                     });
                                 }
 
                                 if (q) {
-                                    forEach(params, function (v, k) {
-                                        q = q.replace(':' + k, encodeURIComponent(v));
+                                    forEach(this.routeParams, function (v) {
+                                        if (v in params) {
+                                            q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v]));
+                                        } else {
+                                            if (compileStrictly) {
+                                                throw new Error('Path parameter missing: ' + v + ' on ' + route);
+                                            }
+                                        }
                                     });
                                 }
                             }
