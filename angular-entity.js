@@ -74,7 +74,7 @@
                             if (angular.isObject(params)) {
                                 if (path) {
                                     forEach(this.routeParams, function (v) {
-                                        if (v in params) {
+                                        if (v in params && params[v] !== void 0) {
                                             path = path.replace('!@$#' + v + '#$@!', params[v]);
 
                                             used[v] = true;
@@ -88,7 +88,7 @@
 
                                 if (q) {
                                     forEach(this.routeParams, function (v) {
-                                        if (v in params) {
+                                        if (v in params && params[v] !== void 0) {
                                             q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v]));
 
                                             used[v] = true;
@@ -102,7 +102,7 @@
 
                                 if (appendParams) {
                                     forEach(params, function (v, k) {
-                                        if (! (k in used)) {
+                                        if (! (k in used) && v !== void 0) {
                                             q || (q = '');
 
                                             q = q + '&' + k + '=' + encodeURIComponent(v);
