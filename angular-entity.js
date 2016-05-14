@@ -75,7 +75,7 @@
                                 if (path) {
                                     forEach(this.routeParams, function (v) {
                                         if (v in params && params[v] !== void 0) {
-                                            path = path.replace('!@$#' + v + '#$@!', params[v]);
+                                            path = path.replace('!@$#' + v + '#$@!', params[v].toString());
 
                                             used[v] = true;
                                         } else {
@@ -89,7 +89,7 @@
                                 if (q) {
                                     forEach(this.routeParams, function (v) {
                                         if (v in params && params[v] !== void 0) {
-                                            q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v]));
+                                            q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v].toString()));
 
                                             used[v] = true;
                                         } else {
@@ -105,7 +105,7 @@
                                         if (! (k in used) && v !== void 0) {
                                             q || (q = '');
 
-                                            q = q + '&' + k + '=' + encodeURIComponent(v);
+                                            q = q + '&' + k + '=' + encodeURIComponent(v.toString());
                                         }
                                     });
                                 }
