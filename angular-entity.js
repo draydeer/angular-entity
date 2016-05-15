@@ -36,7 +36,7 @@
 
                         this.routeParams = routeParams;
 
-                        route = route.replace(/([^\\]):([\w\$]+)/g, "$1!@$#$2#$@!");
+                        route = route.replace(/([^\\]):([\w\$]+)/g, "$1!@$#$2#$@!").replace('\:', ':');
 
                         var q = route.indexOf('?');
 
