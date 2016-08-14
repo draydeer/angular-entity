@@ -149,6 +149,7 @@
 
                     function Resty(base, routes) {
                         this.base = base;
+                        this.compiledRoutes = {};
                         this.defaults = null;
                         this.deferred = [];
                         this.errorHandler = null;
@@ -241,7 +242,7 @@
                                     }
 
                                     if (method in Route.prototype) {
-                                        route = new Route(route, compileStrictly, appendParams, defaults);
+                                        this.compiledRoutes[k] = route = new Route(route, compileStrictly, appendParams, defaults);
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
@@ -281,8 +282,8 @@
                         },
 
                         compile: function (alias, params) {
-                            if (alias in this) {
-                                return this[alias].compileQuery(params);
+                            if (alias in this.compiledRoutes) {
+                                return this.compiledRoutes[alias].compileQuery(params);
                             }
 
                             throw new Error('Route is not defined: ' + alias);
