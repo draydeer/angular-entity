@@ -19,8 +19,7 @@
                         extend = angular.extend,
                         copy = angular.copy;
 
-                    function Route(route, compileStrictly, appendParams, defaults)
-                    {
+                    function Route(route, compileStrictly, appendParams, defaults) {
                         this.appendParams = appendParams === true;
                         this.compileStrictly = compileStrictly !== false;
                         this.defaults = defaults;
@@ -148,8 +147,7 @@
 
                     };
 
-                    function Resty(base, routes)
-                    {
+                    function Resty(base, routes) {
                         this.base = base;
                         this.defaults = null;
                         this.deferred = [];
@@ -280,12 +278,19 @@
                             }
 
                             return this;
+                        },
+
+                        compile: function (alias, params) {
+                            if (alias in this.routes) {
+                                return this.routes[alias].compile(params);
+                            }
+
+                            throw new Error('Route is not defined: ' + alias);
                         }
 
                     };
 
-                    function factory(base, routes)
-                    {
+                    function factory(base, routes) {
                         return new Resty(base, routes);
                     }
 
@@ -778,13 +783,11 @@
                         return EntityModel;
                     };
 
-                    function factory(alias, scope, mappedProperty, transport, methods)
-                    {
+                    function factory(alias, scope, mappedProperty, transport, methods) {
                         return new EntityCollection(alias, scope, mappedProperty, transport, methods);
                     }
 
-                    function factoryEntityModel(context, key, $$isNew)
-                    {
+                    function factoryEntityModel(context, key, $$isNew) {
                         return new (EntityModel.setPrototype(context.get(key)))(context, key, $$isNew);
                     }
 
