@@ -282,7 +282,7 @@
 
                         compile: function (alias, params) {
                             if (alias in this) {
-                                return this[alias].compile(params);
+                                return this[alias].compileQuery(params);
                             }
 
                             throw new Error('Route is not defined: ' + alias);
