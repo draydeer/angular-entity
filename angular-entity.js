@@ -281,8 +281,8 @@
                         },
 
                         compile: function (alias, params) {
-                            if (alias in this.routes) {
-                                return this.routes[alias].compile(params);
+                            if (alias in this) {
+                                return this.compile(params);
                             }
 
                             throw new Error('Route is not defined: ' + alias);
