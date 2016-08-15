@@ -158,6 +158,8 @@
                         this.responseSimpleOnce = false;
                         this.routes = routes;
                         this.successHandler = null;
+                        this.onAfterRequest = null;
+                        this.onBeforeRequest = null;
 
                         this.addRoutes(routes);
                     }
@@ -198,6 +200,26 @@
                             this.successHandler = angular.isFunction(value) ? value : null;
 
                             return this;
+                        },
+
+                        setOnAfterRequest: function (handler) {
+                            if (angular.isFunction(handler)) {
+                                this.onAfterRequest = handler;
+
+                                return this;
+                            }
+
+                            throw new Error('Invalid [onAfterRequest] handler.');
+                        },
+
+                        setOnBeforeRequest: function (handler) {
+                            if (angular.isFunction(handler)) {
+                                this.onBeforeRequest = handler;
+
+                                return this;
+                            }
+
+                            throw new Error('Invalid [onBeforeRequest] handler.');
                         },
 
                         addRoutes: function (routes) {
@@ -246,6 +268,10 @@
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
+                                                if (this.onBeforeRequest) {
+                                                    options = this.onBeforeRequest(options);
+                                                }
+
                                                 route[method](params, data, options).then(
                                                     function (res) {
                                                         var handler = this.successHandler || successHandler;
@@ -254,7 +280,11 @@
                                                             handler(res.data, res);
                                                         }
 
-                                                        resolve((this.rawResponse && this.responseSimpleOnce === false) ? res : res.data);
+                                                        resolve(
+                                                            (this.rawResponse && this.responseSimpleOnce === false)
+                                                                ? res :
+                                                                res.data
+                                                        );
 
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this),
@@ -265,7 +295,11 @@
                                                             handler(err.data, err.status, err);
                                                         }
 
-                                                        reject((this.rawResponse && this.responseSimpleOnce === false) ? err : err.status);
+                                                        reject(
+                                                            (this.rawResponse && this.responseSimpleOnce === false)
+                                                                ? err :
+                                                                err.status
+                                                        );
 
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this)
@@ -366,8 +400,7 @@
                      * @param methods Custom model methods.
                      * @constructor
                      */
-                    function EntityCollection(alias, scope, mappedProperty, transport, methods)
-                    {
+                    function EntityCollection(alias, scope, mappedProperty, transport, methods) {
                         if (angular.isString(alias) === false) {
                             throw new Error('Incorrect [alias].');
                         }
@@ -389,25 +422,34 @@
                         this.methods = methods && {};
                         this.modelCache = {};
                         this.modelCacheIndex = 10000000;
+                        this.modelFactory = factoryEntityModel;
                         this.modelMapper = null;
                         this.oneMethod = 'getOne';
                         this.putMethods = ['create', 'update'];
                         this.relations = {};
+                        this.rootScope = scope.$applyAsync ? scope : null;
                         this.scope = scope;
                         this.transport = transport;
                         this.transportOptions = {};
-                        this.wantWatcher = false;
 
                         // wrap transport routes methods
                         if (transport.routes) {
                             forEach(transport.routes, function (v, k) {
                                 if (angular.isFunction(mappedProperty)) {
                                     this[k] = function () {
-                                        return v.call(transport, this.mappedProperty(this.scope, this.k), this.mappedProperty(this.scope, this.k));
+                                        return v.call(
+                                            transport,
+                                            this.mappedProperty(this.scope, this.k),
+                                            this.mappedProperty(this.scope, this.k)
+                                        );
                                     }.bind(this);
                                 } else {
                                     this[k] = function () {
-                                        return v.call(transport, this.get(this.k), this.get(this.k));
+                                        return v.call(
+                                            transport,
+                                            this.get(this.k),
+                                            this.get(this.k)
+                                        );
                                     }.bind(this);
                                 }
                             }.bind(this));
@@ -429,78 +471,6 @@
                     EntityCollection.RELATION_ONE_TO_MANY = 1;
 
                     EntityCollection.prototype = {
-
-                        setAll: function (value) {
-                            this.allMethod = value;
-
-                            return this;
-                        },
-
-                        setDefaults: function (value) {
-                            this.defaults = value;
-
-                            return this;
-                        },
-
-                        setDel: function (func) {
-                            this.delMethod = func;
-
-                            return this;
-                        },
-
-                        setOne: function (func) {
-                            this.oneMethod = func;
-
-                            return this;
-                        },
-
-                        setPut: function (funcCreate, funcUpdate) {
-                            this.putMethods = [funcCreate, funcUpdate];
-
-                            return this;
-                        },
-
-                        /**
-                         * Set model mapper. [string] will be used as collection key.
-                         *
-                         * @param value
-                         * @returns {EntityCollection}
-                         */
-                        setModelMapper: function (value) {
-                            this.modelMapper = value;
-
-                            return this;
-                        },
-
-                        setOneToOne: function(alias, entity, l, r) {
-                            this.relations[alias] = [entity.setOneToOne(this.alias, EntityCollection.RELATION_ONE_TO_ONE), EntityCollection.RELATION_ONE_TO_ONE, l, r];
-
-                            return this;
-                        },
-
-                        setOneToMany: function(alias, entity, l, r) {
-                            this.relations[alias] = [entity.setOneToOne(this.alias, EntityCollection.RELATION_ONE_TO_ONE), EntityCollection.RELATION_ONE_TO_MANY, l, r];
-
-                            return this;
-                        },
-
-                        setTransport: function (value) {
-                            this.transport = value;
-
-                            return this;
-                        },
-
-                        setTransportOptions: function (value) {
-                            this.transportOptions = angular.isObject(value) ? value : {};
-
-                            return this;
-                        },
-
-                        setWantWatcher: function (value) {
-                            this.wantWatcher = value === true;
-
-                            return this;
-                        },
 
                         get: function (k, defaultValue) {
                             k = k !== void 0 ? k.toString().split('.') : void 0;
@@ -533,10 +503,6 @@
                         },
 
                         set: function (k, value) {
-                            if (value === void 0) {
-                                return angular.isFunction(this.mappedProperty) ? this.mappedProperty(this, void 0, k) : this.scope[this.mappedProperty] = k;
-                            }
-
                             k = k.toString().split('.');
 
                             var i, l, res;
@@ -546,7 +512,13 @@
                             } else if (k[0] in this.scope[this.mappedProperty]) {
                                 res = this.scope[this.mappedProperty];
                             } else {
-                                res = (angular.isArray(this.scope[this.mappedProperty]) ? k[0] = this.scope[this.mappedProperty].push({}) - 1 : (this.scope[this.mappedProperty][k[0]] = {})) && this.scope[this.mappedProperty];
+                                if (angular.isArray(this.scope[this.mappedProperty])) {
+                                    k[0] = this.scope[this.mappedProperty].push({}) - 1;
+                                } else {
+                                    this.scope[this.mappedProperty][k[0]] = {}
+                                }
+
+                                res = this.scope[this.mappedProperty];
                             }
 
                             for (i = 0, l = k.length - 1; i < l; i ++) {
@@ -554,28 +526,114 @@
                             }
 
                             if (angular.isArray(res) && k[i] >= res.length) {
-                                return res.push(value);
+                                res.push(value);
+
+                                this.apply();
+
+                                return value;
                             }
 
                             res[k[i]] = value;
+
+                            this.apply();
 
                             return k[i];
                         },
 
                         getRelated: function (alias, query) {
-                            if (alias in this.relations) {
-
+                            if (! (alias in this.relations)) {
+                                throw new Error('Relation is not defined: ' + alias);
                             }
 
-                            throw new Error('Relation is not defined: ' + alias);
+                            // TODO
+                        },
+
+                        getRoot: function (k) {
+                            if (! (k in this.scope[this.mappedProperty])) {
+                                throw new Error('Key is not defined: ' + k);
+                            }
+
+                            return this.scope[this.mappedProperty][k];
+                        },
+
+                        setAll: function (value) {
+                            this.allMethod = value;
+
+                            return this;
+                        },
+
+                        setDefaults: function (value) {
+                            this.defaults = value;
+
+                            return this;
+                        },
+
+                        setDel: function (func) {
+                            this.delMethod = func;
+
+                            return this;
+                        },
+
+                        setOne: function (func) {
+                            this.oneMethod = func;
+
+                            return this;
+                        },
+
+                        setPut: function (funcCreate, funcUpdate) {
+                            this.putMethods = [funcCreate, funcUpdate];
+
+                            return this;
+                        },
+
+                        setModelMapper: function (value) {
+                            this.modelMapper = value;
+
+                            return this;
+                        },
+
+                        setOneToOne: function(alias, entity, l, r) {
+                            this.relations[alias] = [entity.setOneToOne(this.alias, EntityCollection.RELATION_ONE_TO_ONE), EntityCollection.RELATION_ONE_TO_ONE, l, r];
+
+                            return this;
+                        },
+
+                        setOneToMany: function(alias, entity, l, r) {
+                            this.relations[alias] = [entity.setOneToOne(this.alias, EntityCollection.RELATION_ONE_TO_ONE), EntityCollection.RELATION_ONE_TO_MANY, l, r];
+
+                            return this;
+                        },
+
+                        setTransport: function (value) {
+                            this.transport = value;
+
+                            return this;
+                        },
+
+                        setTransportOptions: function (value) {
+                            this.transportOptions = angular.isObject(value) ? value : {};
+
+                            return this;
                         },
 
                         setRelated: function (alias, query, model) {
-                            if (alias in this.relations) {
-
+                            if (! (alias in this.relations)) {
+                                throw new Error('Relation is not defined: ' + alias);
                             }
 
-                            throw new Error('Relation is not defined: ' + alias);
+                            // TODO
+
+                            return this;
+                        },
+
+                        setRootScope: function (scope) {
+                            if (! scope.$applyAsync) {
+                                throw new Error('Is not [$scope].');
+                            }
+
+                            this.rootScope = scope;
+
+                            return this;
                         },
 
                         all: function (query) {
@@ -600,19 +658,39 @@
                         },
 
                         append: function (k, v) {
-                            var val = v === void 0 ? k : v;
-
                             if (angular.isArray(this.scope[this.mappedProperty]) && (v === void 0 || k >= this.scope[this.mappedProperty].length)) {
-                                this.scope[this.mappedProperty].push(val);
+                                this.scope[this.mappedProperty].push(v === void 0 ? k : v);
                             } else {
-                                this.scope[this.mappedProperty][k] = val;
+                                this.scope[this.mappedProperty][k] = v === void 0 ? k : v;
+                            }
+
+                            return this;
+                        },
+
+                        apply: function () {
+                            var scope;
+
+                            if (this.rootScope) {
+                                scope = this.rootScope
+                            } else {
+                                scope = this.scope;
+                            }
+
+                            if (scope.$applyAsync) {
+                                scope.$applyAsync();
                             }
 
                             return this;
                         },
 
                         clear: function () {
-                            angular.isString(this.mappedProperty) ? this.scope[this.mappedProperty] = {} : this.mappedProperty(this.scope, void 0, []);
+                            angular.isString(this.mappedProperty)
+                                ? this.scope[this.mappedProperty] = {}
+                                : this.mappedProperty(this.scope, void 0, []);
+
+                            forEach(this.modelCache, function (v) {
+                                v.$$free();
+                            });
 
                             this.modelCache = {};
 
@@ -665,7 +743,7 @@
                                 return this.modelCache[this.scope[this.mappedProperty][this.k].$$isCached];
                             }
 
-                            var model = this.modelCache[this.modelCacheIndex ++] = factoryEntityModel(this, this.k, $$isNew);
+                            var model = this.modelCache[this.modelCacheIndex ++] = this.modelFactory(this, this.k, $$isNew);
 
                             this.get(this.k).$$isCached = this.modelCacheIndex - 1;
 
@@ -717,12 +795,17 @@
                             }
 
                             return this;
+                        },
+
+                        simplified: function () {
+                            this.modelFactory = factoryEntityModelSimplified;
+
+                            return this;
                         }
 
                     };
 
-                    function EntityModel(context, key, $$isNew)
-                    {
+                    function EntityModel(context, key, $$isNew) {
                         this.$$isDirty = this.$$isNew = $$isNew === true;
 
                         this.get = function (k, defaultValue) {
@@ -730,19 +813,11 @@
                         };
 
                         this.set = function (k, v) {
-                            this.$$isDirty = true;
-
-                            return context.set(key + '.' + k, v) ? this : this;
+                            return (this.$$isDirty = true) && context.set(key + '.' + k, v) ? this : this;
                         };
 
-                        this.collection = function () {
-                            return context;
-                        };
-
-                        this.dirty = function (value) {
-                            this.$$isDirty = value !== false;
-
-                            return this;
+                        this.$$free = function () {
+                            context = null;
                         };
 
                         this.del = function () {
@@ -784,12 +859,70 @@
                         return EntityModel;
                     };
 
+                    function EntityModelSimplified(context, key, $$isNew) {
+                        this.$$isDirty = this.$$isNew = $$isNew === true;
+
+                        Object.defineProperty(this, '_', { get: function () {
+                            return context.getRoot(key);
+                        }});
+
+                        Object.defineProperty(this, '$', { get: function () {
+                            return context.apply() && context.getRoot(key);
+                        }});
+
+                        this.$$free = function () {
+                            context = null;
+                        };
+
+                        this.del = function () {
+                            return $q(function (resolve, reject) {
+                                context.del(key).then(
+                                    function (res) {
+                                        context = null;
+
+                                        resolve(res);
+                                    },
+                                    reject
+                                )
+                            });
+                        };
+
+                        this.put = function () {
+                            return $q(function (resolve, reject) {
+                                this.$$isDirty ? context.put(key, this.$$isNew).then(
+                                    function (res) {
+                                        this.$$isDirty = this.$$isNew = false;
+
+                                        resolve(res);
+                                    }.bind(this),
+                                    reject
+                                ) : resolve();
+                            }.bind(this));
+                        };
+
+                        if (context.methods) {
+                            for (var k in context.methods) {
+                                this[k] = context.methods[k];
+                            }
+                        }
+                    }
+
+                    EntityModelSimplified.setPrototype = function (proto) {
+                        EntityModelSimplified.prototype = proto;
+
+                        return EntityModelSimplified;
+                    };
+
                     function factory(alias, scope, mappedProperty, transport, methods) {
                         return new EntityCollection(alias, scope, mappedProperty, transport, methods);
                     }
 
                     function factoryEntityModel(context, key, $$isNew) {
                         return new (EntityModel.setPrototype(context.get(key)))(context, key, $$isNew);
+                    }
+
+                    function factoryEntityModelSimplified(context, key, $$isNew) {
+                        return new (EntityModelSimplified.setPrototype(context.get(key)))(context, key, $$isNew);
                     }
 
                     return factory;
@@ -799,6 +932,6 @@
 
 })(window, window.angular);
 
-if (typeof module !== 'undefined' && typeof exports !== 'undefined' && module.exports === exports){
+if (typeof module !== 'undefined' && typeof exports !== 'undefined' && module.exports === exports) {
     module.exports = 'angular-entity';
 }
