@@ -868,11 +868,15 @@
                         if (context.modelDefinition) {
                             var reference = context.getRoot(key);
 
-                            for (var k in context.modelDefinition) {
-                                if (angular.isFunction(context.modelDefinition[k])) {
-                                    this[k] = context.modelDefinition[k];
-                                } else {
-                                    reference[k] = context.modelDefinition[k];
+                            if (_.isFunction(context.modelDefinition)) {
+                                context.modelDefinition.call(this, reference);
+                            } else {
+                                for (var k in context.modelDefinition) {
+                                    if (angular.isFunction(context.modelDefinition[k])) {
+                                        this[k] = context.modelDefinition[k];
+                                    } else {
+                                        reference[k] = context.modelDefinition[k];
+                                    }
                                 }
                             }
                         }
@@ -934,11 +938,15 @@
                         if (context.modelDefinition) {
                             var reference = context.getRoot(key);
 
-                            for (var k in context.modelDefinition) {
-                                if (angular.isFunction(context.modelDefinition[k])) {
-                                    this[k] = context.modelDefinition[k];
-                                } else {
-                                    reference[k] = context.modelDefinition[k];
+                            if (_.isFunction(context.modelDefinition)) {
+                                context.modelDefinition.call(this, reference);
+                            } else {
+                                for (var k in context.modelDefinition) {
+                                    if (angular.isFunction(context.modelDefinition[k])) {
+                                        this[k] = context.modelDefinition[k];
+                                    } else {
+                                        reference[k] = context.modelDefinition[k];
+                                    }
                                 }
                             }
                         }
