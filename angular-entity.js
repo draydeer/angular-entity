@@ -516,12 +516,20 @@
                                 res = (k[i] in res && angular.isObject(res[k[i]])) ? res[k[i]] : (res[k[i]] = {});
                             }
 
-                            if (angular.isArray(res) && k[i] >= res.length) {
-                                res.push(value);
+                            if (angular.isArray(res)) {
+                                if (k[i] >= res.length) {
+                                    res.push(value);
 
-                                this.apply();
+                                    this.apply();
 
-                                return value;
+                                    return value;
+                                } else if (k[i] < 0) {
+                                    res.unshift(value);
+
+                                    this.apply();
+
+                                    return value;
+                                }
                             }
 
                             res[k[i]] = value;
