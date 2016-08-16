@@ -868,7 +868,7 @@
                         if (context.modelDefinition) {
                             var reference = context.getRoot(key);
 
-                            if (_.isFunction(context.modelDefinition)) {
+                            if (angular.isFunction(context.modelDefinition)) {
                                 context.modelDefinition.call(this, reference);
                             } else {
                                 for (var k in context.modelDefinition) {
@@ -938,7 +938,7 @@
                         if (context.modelDefinition) {
                             var reference = context.getRoot(key);
 
-                            if (_.isFunction(context.modelDefinition)) {
+                            if (angular.isFunction(context.modelDefinition)) {
                                 context.modelDefinition.call(this, reference);
                             } else {
                                 for (var k in context.modelDefinition) {
