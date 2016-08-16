@@ -423,20 +423,32 @@
                         this.allMethod = 'getAll';
                         this.delMethod = 'delete';
                         this.defaults = void 0;
+                        this.digestScope = scope.$applyAsync ? scope : null;
                         this.k = null;
                         this.mappedProperty = mappedProperty;
                         this.modelCache = {};
                         this.modelCacheIndex = 10000000;
-                        this.modelDefinition = modelDefinition && {};
+                        this.modelDefinition = modelDefinition || {};
                         this.modelFactory = factoryEntityModel;
                         this.modelMapper = null;
                         this.oneMethod = 'getOne';
                         this.putMethods = ['create', 'update'];
                         this.relations = {};
-                        this.rootScope = scope.$applyAsync ? scope : null;
                         this.scope = scope;
                         this.transport = transport;
                         this.transportOptions = {};
+
+                        if (angular.isString(mappedProperty)) {
+                            mappedProperty = mappedProperty.split('.');
+
+                            forEach(mappedProperty.slice(0, mappedProperty.length - 1), function (v) {
+                                scope = scope[v];
+                            });
+
+                            this.mappedProperty = mappedProperty[mappedProperty.length - 1];
+
+                            this.scope = scope;
+                        }
 
                         // wrap transport routes methods
                         if (transport.routes) {
@@ -457,17 +469,6 @@
                                             this.get(this.k)
                                         );
                                     }.bind(this);
-                                }
-                            }.bind(this));
-                        }
-
-                        // wrap custom model methods
-                        if (methods) {
-                            forEach(methods, function (v, k) {
-                                if (angular.isString(v)) {
-                                    this.modelDefinition[k] = this[v];
-                                } else {
-                                    this.modelDefinition[k] = v;
                                 }
                             }.bind(this));
                         }
@@ -580,20 +581,30 @@
                             return this;
                         },
 
-                        setOne: function (func) {
-                            this.oneMethod = func;
+                        setDigestScope: function (scope) {
+                            if (! scope.$applyAsync) {
+                                throw new Error('Is not [$scope].');
+                            }
+
+                            this.digestScope = scope;
 
                             return this;
                         },
 
-                        setPut: function (funcCreate, funcUpdate) {
-                            this.putMethods = [funcCreate, funcUpdate];
+                        setEntire: function (value) {
+                            this.scope[this.mappedProperty] = value;
 
                             return this;
                         },
 
                         setModelMapper: function (value) {
                             this.modelMapper = value;
+
+                            return this;
+                        },
+
+                        setOne: function (func) {
+                            this.oneMethod = func;
 
                             return this;
                         },
@@ -610,14 +621,8 @@
                             return this;
                         },
 
-                        setTransport: function (value) {
-                            this.transport = value;
-
-                            return this;
-                        },
-
-                        setTransportOptions: function (value) {
-                            this.transportOptions = angular.isObject(value) ? value : {};
+                        setPut: function (funcCreate, funcUpdate) {
+                            this.putMethods = [funcCreate, funcUpdate];
 
                             return this;
                         },
@@ -632,12 +637,14 @@
                             return this;
                         },
 
-                        setRootScope: function (scope) {
-                            if (! scope.$applyAsync) {
-                                throw new Error('Is not [$scope].');
-                            }
+                        setTransport: function (value) {
+                            this.transport = value;
 
-                            this.rootScope = scope;
+                            return this;
+                        },
+
+                        setTransportOptions: function (value) {
+                            this.transportOptions = angular.isObject(value) ? value : {};
 
                             return this;
                         },
@@ -676,8 +683,8 @@
                         apply: function () {
                             var scope;
 
-                            if (this.rootScope) {
-                                scope = this.rootScope
+                            if (this.digestScope) {
+                                scope = this.digestScope
                             } else {
                                 scope = this.scope;
                             }
@@ -859,8 +866,14 @@
                         };
 
                         if (context.modelDefinition) {
+                            var reference = context.getRoot(key);
+
                             for (var k in context.modelDefinition) {
-                                this[k] = context.modelDefinition[k];
+                                if (angular.isFunction(context.modelDefinition[k])) {
+                                    this[k] = context.modelDefinition[k];
+                                } else {
+                                    reference[k] = context.modelDefinition[k];
+                                }
                             }
                         }
                     }
@@ -919,8 +932,14 @@
                         };
 
                         if (context.modelDefinition) {
+                            var reference = context.getRoot(key);
+
                             for (var k in context.modelDefinition) {
-                                this[k] = context.modelDefinition[k];
+                                if (angular.isFunction(context.modelDefinition[k])) {
+                                    this[k] = context.modelDefinition[k];
+                                } else {
+                                    reference[k] = context.modelDefinition[k];
+                                }
                             }
                         }
                     }
@@ -931,8 +950,8 @@
                         return EntityModelSimplified;
                     };
 
-                    function factory(alias, scope, mappedProperty, transport, methods) {
-                        return new EntityCollection(alias, scope, mappedProperty, transport, methods);
+                    function factory(alias, scope, mappedProperty, transport, modelDefinition) {
+                        return new EntityCollection(alias, scope, mappedProperty, transport, modelDefinition);
                     }
 
                     function factoryEntityModel(context, key, $$isNew) {
