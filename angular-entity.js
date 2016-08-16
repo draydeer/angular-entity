@@ -453,23 +453,7 @@
                         // wrap transport routes methods
                         if (transport.routes) {
                             forEach(transport.routes, function (v, k) {
-                                if (angular.isFunction(mappedProperty)) {
-                                    this[k] = function () {
-                                        return v.call(
-                                            transport,
-                                            this.mappedProperty(this.scope, this.k),
-                                            this.mappedProperty(this.scope, this.k)
-                                        );
-                                    }.bind(this);
-                                } else {
-                                    this[k] = function () {
-                                        return v.call(
-                                            transport,
-                                            this.get(this.k),
-                                            this.get(this.k)
-                                        );
-                                    }.bind(this);
-                                }
+                                this[k] = v;
                             }.bind(this));
                         }
                     }
