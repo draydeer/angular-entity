@@ -701,13 +701,7 @@
                                 ? this.scope[this.mappedProperty] = {}
                                 : this.mappedProperty(this.scope, void 0, []);
 
-                            forEach(this.modelCache, function (v) {
-                                v.$$free();
-                            });
-
-                            this.modelCache = {};
-
-                            return this;
+                            return this.flush();
                         },
 
                         collection: function () {
@@ -733,6 +727,16 @@
                                     reject
                                 );
                             }.bind(this));
+                        },
+
+                        flush: function () {
+                            forEach(this.modelCache, function (v) {
+                                v.$$free();
+                            });
+
+                            this.modelCache = {};
+
+                            return this;
                         },
 
                         on: function (k, defaults) {
