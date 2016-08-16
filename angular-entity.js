@@ -355,6 +355,12 @@
                         extend = angular.extend,
                         copy = angular.copy;
 
+                    function delProp(o, p) {
+                        Object.defineProperty(o, p, {get: void 0, set: void 0});
+
+                        return delProp;
+                    }
+
                     /**
                      * Fake transport with CRUD.
                      */
@@ -397,10 +403,10 @@
                      *      (entity reference, key, value) => {} - as setter
                      *
                      * @param transport I/O transport.
-                     * @param methods Custom model methods.
+                     * @param modelDefinition Custom model methods and properties to be initialized on new model.
                      * @constructor
                      */
-                    function EntityCollection(alias, scope, mappedProperty, transport, methods) {
+                    function EntityCollection(alias, scope, mappedProperty, transport, modelDefinition) {
                         if (angular.isString(alias) === false) {
                             throw new Error('Incorrect [alias].');
                         }
@@ -419,9 +425,9 @@
                         this.defaults = void 0;
                         this.k = null;
                         this.mappedProperty = mappedProperty;
-                        this.methods = methods && {};
                         this.modelCache = {};
                         this.modelCacheIndex = 10000000;
+                        this.modelDefinition = modelDefinition && {};
                         this.modelFactory = factoryEntityModel;
                         this.modelMapper = null;
                         this.oneMethod = 'getOne';
@@ -459,9 +465,9 @@
                         if (methods) {
                             forEach(methods, function (v, k) {
                                 if (angular.isString(v)) {
-                                    this.methods[k] = this[v];
+                                    this.modelDefinition[k] = this[v];
                                 } else {
-                                    this.methods[k] = v;
+                                    this.modelDefinition[k] = v;
                                 }
                             }.bind(this));
                         }
@@ -816,8 +822,14 @@
                             return (this.$$isDirty = true) && context.set(key + '.' + k, v) ? this : this;
                         };
 
+                        Object.defineProperty(this, '$$col', { get: function () {
+                            return context;
+                        }});
+
                         this.$$free = function () {
                             context = null;
+
+                            delProp(this, '$$col');
                         };
 
                         this.del = function () {
@@ -846,9 +858,9 @@
                             }.bind(this));
                         };
 
-                        if (context.methods) {
-                            for (var k in context.methods) {
-                                this[k] = context.methods[k];
+                        if (context.modelDefinition) {
+                            for (var k in context.modelDefinition) {
+                                this[k] = context.modelDefinition[k];
                             }
                         }
                     }
@@ -870,8 +882,14 @@
                             return context.apply() && context.getRoot(key);
                         }});
 
+                        Object.defineProperty(this, '$$col', { get: function () {
+                            return context;
+                        }});
+
                         this.$$free = function () {
                             context = null;
+
+                            delProp(this, '_')(this, '$')(this, '$$col');
                         };
 
                         this.del = function () {
@@ -900,9 +918,9 @@
                             }.bind(this));
                         };
 
-                        if (context.methods) {
-                            for (var k in context.methods) {
-                                this[k] = context.methods[k];
+                        if (context.modelDefinition) {
+                            for (var k in context.modelDefinition) {
+                                this[k] = context.modelDefinition[k];
                             }
                         }
                     }
