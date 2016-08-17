@@ -838,9 +838,9 @@
                         }, configurable: true });
 
                         this.$$free = function () {
-                            context = null;
+                            context && delProp(this, '$$col');
 
-                            delProp(this, '$$col');
+                            context = null;
                         };
 
                         this.del = function () {
@@ -904,9 +904,9 @@
                         }, configurable: true });
 
                         this.$$free = function () {
-                            context = null;
+                            context && delProp(this, '_')(this, '$$col');
 
-                            delProp(this, '_')(this, '$$col');
+                            context = null;
                         };
 
                         this.$$apply = function () {
@@ -988,9 +988,9 @@
                         }, configurable: true });
 
                         this.$$free = function () {
-                            context = null;
+                            context && delProp(this, '_')(this, '$')(this, '$$col');
 
-                            delProp(this, '_')(this, '$')(this, '$$col');
+                            context = null;
                         };
 
                         this.del = function () {
