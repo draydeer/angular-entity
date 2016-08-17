@@ -88,7 +88,7 @@
                                 if (q) {
                                     forEach(this.routeParams, function (v) {
                                         if (v in params && params[v] !== void 0) {
-                                            q = q.replace('!@$#' + v + '#$@!', encodeURIComponent(params[v].toString()));
+                                            q = q.replace('!@$#' + v + '#$@!', params[v] !== null ? encodeURIComponent(params[v].toString()) : '');
 
                                             used[v] = true;
                                         } else {
