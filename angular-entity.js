@@ -74,7 +74,7 @@
                                 if (path) {
                                     forEach(this.routeParams, function (v) {
                                         if (v in params && params[v] !== void 0) {
-                                            path = path.replace('!@$#' + v + '#$@!', params[v].toString());
+                                            path = path.replace('!@$#' + v + '#$@!', params[v] !== null ? params[v].toString() : '');
 
                                             used[v] = true;
                                         } else {
