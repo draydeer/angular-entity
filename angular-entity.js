@@ -910,11 +910,13 @@
                         this.apply = function () {
                             var proto = this._;
 
-                            forEach(this, function (v, k) {
-                                proto[k] = v;
+                            for (k in this) {
+                                if (this.hasOwnProperty(k) && angular.isFunction(this[k]) === false) {
+                                    proto[k] = this[k];
 
-                                delete this[k];
-                            });
+                                    delete this[k];
+                                }
+                            }
 
                             this.$$col.apply();
                         };
