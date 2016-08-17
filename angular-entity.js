@@ -104,7 +104,7 @@
                                         if (! (k in used) && v !== void 0) {
                                             q || (q = '');
 
-                                            q = q + '&' + k + '=' + encodeURIComponent(v.toString());
+                                            q = q + '&' + k + '=' + (v !== null ? encodeURIComponent(v.toString()) : '');
                                         }
                                     });
                                 }
