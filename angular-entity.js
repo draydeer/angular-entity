@@ -810,6 +810,12 @@
                             this.modelFactory = factoryEntityModelSimplified;
 
                             return this;
+                        },
+
+                        unsafe: function () {
+                            this.modelFactory = factoryEntityModelUnsafe;
+
+                            return this;
                         }
 
                     };
@@ -891,6 +897,84 @@
                             return context.getRoot(key);
                         }});
 
+                        Object.defineProperty(this, '$$col', { get: function () {
+                            return context;
+                        }});
+
+                        this.$$free = function () {
+                            context = null;
+
+                            delProp(this, '_')(this, '$$col');
+                        };
+
+                        this.apply = function () {
+                            var proto = this._;
+
+                            forEach(this, function (v, k) {
+                                proto[k] = v;
+
+                                delete this[k];
+                            });
+
+                            this.$$col.apply();
+                        };
+
+                        this.del = function () {
+                            return $q(function (resolve, reject) {
+                                context.del(key).then(
+                                    function (res) {
+                                        context = null;
+
+                                        resolve(res);
+                                    },
+                                    reject
+                                )
+                            });
+                        };
+
+                        this.put = function () {
+                            return $q(function (resolve, reject) {
+                                this.$$isDirty ? context.put(key, this.$$isNew).then(
+                                    function (res) {
+                                        this.$$isDirty = this.$$isNew = false;
+
+                                        resolve(res);
+                                    }.bind(this),
+                                    reject
+                                ) : resolve();
+                            }.bind(this));
+                        };
+
+                        if (context.modelDefinition) {
+                            var reference = context.getRoot(key);
+
+                            if (angular.isFunction(context.modelDefinition)) {
+                                context.modelDefinition.call(this, reference);
+                            } else {
+                                for (var k in context.modelDefinition) {
+                                    if (angular.isFunction(context.modelDefinition[k])) {
+                                        this[k] = context.modelDefinition[k];
+                                    } else {
+                                        reference[k] = context.modelDefinition[k];
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    EntityModelSimplified.setPrototype = function (proto) {
+                        EntityModelSimplified.prototype = proto;
+
+                        return EntityModelSimplified;
+                    };
+
+                    function EntityModelUnsafe(context, key, $$isNew) {
+                        this.$$isDirty = this.$$isNew = $$isNew === true;
+
+                        Object.defineProperty(this, '_', { get: function () {
+                            return context.getRoot(key);
+                        }});
+
                         Object.defineProperty(this, '$', { get: function () {
                             return context.apply() && context.getRoot(key);
                         }});
@@ -948,10 +1032,10 @@
                         }
                     }
 
-                    EntityModelSimplified.setPrototype = function (proto) {
-                        EntityModelSimplified.prototype = proto;
+                    EntityModelUnsafe.setPrototype = function (proto) {
+                        EntityModelUnsafe.prototype = proto;
 
-                        return EntityModelSimplified;
+                        return EntityModelUnsafe;
                     };
 
                     function factory(alias, scope, mappedProperty, transport, modelDefinition) {
@@ -964,6 +1048,10 @@
 
                     function factoryEntityModelSimplified(context, key, $$isNew) {
                         return new (EntityModelSimplified.setPrototype(context.get(key)))(context, key, $$isNew);
+                    }
+
+                    function factoryEntityModelUnsafe(context, key, $$isNew) {
+                        return new (EntityModelUnsafe.setPrototype(context.get(key)))(context, key, $$isNew);
                     }
 
                     return factory;
