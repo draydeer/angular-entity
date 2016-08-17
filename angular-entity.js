@@ -689,11 +689,13 @@
                         },
 
                         clear: function () {
+                            this.flush();
+
                             angular.isString(this.mappedProperty)
                                 ? this.scope[this.mappedProperty] = {}
                                 : this.mappedProperty(this.scope, void 0, []);
 
-                            return this.flush();
+                            return this;
                         },
 
                         collection: function () {
@@ -833,7 +835,7 @@
 
                         Object.defineProperty(this, '$$col', { get: function () {
                             return context;
-                        }});
+                        }, configurable: true });
 
                         this.$$free = function () {
                             context = null;
@@ -845,13 +847,13 @@
                             return $q(function (resolve, reject) {
                                 context.del(key).then(
                                     function (res) {
-                                        context = null;
+                                        this.$$free();
 
                                         resolve(res);
-                                    },
+                                    }.bind(this),
                                     reject
                                 )
-                            });
+                            }.bind(this));
                         };
 
                         this.put = function () {
@@ -895,11 +897,11 @@
 
                         Object.defineProperty(this, '_', { get: function () {
                             return context.getRoot(key);
-                        }});
+                        }, configurable: true });
 
                         Object.defineProperty(this, '$$col', { get: function () {
                             return context;
-                        }});
+                        }, configurable: true });
 
                         this.$$free = function () {
                             context = null;
@@ -907,7 +909,7 @@
                             delProp(this, '_')(this, '$$col');
                         };
 
-                        this.apply = function () {
+                        this.$$apply = function () {
                             var proto = this._;
 
                             for (k in this) {
@@ -925,13 +927,13 @@
                             return $q(function (resolve, reject) {
                                 context.del(key).then(
                                     function (res) {
-                                        context = null;
+                                        this.$$free();
 
                                         resolve(res);
-                                    },
+                                    }.bind(this),
                                     reject
                                 )
-                            });
+                            }.bind(this));
                         };
 
                         this.put = function () {
@@ -975,15 +977,15 @@
 
                         Object.defineProperty(this, '_', { get: function () {
                             return context.getRoot(key);
-                        }});
+                        }, configurable: true });
 
                         Object.defineProperty(this, '$', { get: function () {
                             return context.apply() && context.getRoot(key);
-                        }});
+                        }, configurable: true });
 
                         Object.defineProperty(this, '$$col', { get: function () {
                             return context;
-                        }});
+                        }, configurable: true });
 
                         this.$$free = function () {
                             context = null;
@@ -995,13 +997,13 @@
                             return $q(function (resolve, reject) {
                                 context.del(key).then(
                                     function (res) {
-                                        context = null;
+                                        this.$$free();
 
                                         resolve(res);
-                                    },
+                                    }.bind(this),
                                     reject
                                 )
-                            });
+                            }.bind(this));
                         };
 
                         this.put = function () {
