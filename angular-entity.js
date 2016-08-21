@@ -268,6 +268,10 @@
 
                                         routes[k] = this[k] = function (params, data, options) {
                                             return $q(function (resolve, reject) {
+                                                var rawResponse = this.rawResponse;
+
+                                                var responseSimpleOnce = this.responseSimpleOnce;
+
                                                 if (this.onBeforeRequest) {
                                                     options = this.onBeforeRequest(options);
                                                 }
@@ -281,7 +285,7 @@
                                                         }
 
                                                         resolve(
-                                                            (this.rawResponse && this.responseSimpleOnce === false)
+                                                            (rawResponse && responseSimpleOnce === false)
                                                                 ? res :
                                                                 res.data
                                                         );
@@ -296,7 +300,7 @@
                                                         }
 
                                                         reject(
-                                                            (this.rawResponse && this.responseSimpleOnce === false)
+                                                            (rawResponse && responseSimpleOnce === false)
                                                                 ? err :
                                                                 err.status
                                                         );
