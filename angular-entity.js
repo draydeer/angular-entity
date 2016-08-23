@@ -160,6 +160,7 @@
                         this.successHandler = null;
                         this.onAfterRequest = null;
                         this.onBeforeRequest = null;
+                        this.onRequest = null;
 
                         this.addRoutes(routes);
                     }
@@ -222,6 +223,16 @@
                             throw new Error('Invalid [onBeforeRequest] handler.');
                         },
 
+                        setOnRequestHandler: function (value) {
+                            if (angular.isFunction(handler)) {
+                                this.onRequest = handler;
+
+                                return this;
+                            }
+
+                            throw new Error('Invalid [onRequest] handler.');
+                        },
+
                         addRoutes: function (routes) {
                             if (angular.isObject(routes)) {
                                 forEach(routes, function (v, k) {
@@ -272,7 +283,7 @@
                                                     options = this.onBeforeRequest(options);
                                                 }
 
-                                                route[method](params, data, options).then(
+                                                var request = route[method](params, data, options).then(
                                                     function (res) {
                                                         var handler = this.successHandler || successHandler;
 
@@ -304,6 +315,10 @@
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this)
                                                 );
+
+                                                if (this.onRequest) {
+                                                    this.onRequest(request);
+                                                }
                                             }.bind(this));
                                         }
                                     } else {
