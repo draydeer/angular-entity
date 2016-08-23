@@ -223,7 +223,7 @@
                             throw new Error('Invalid [onBeforeRequest] handler.');
                         },
 
-                        setOnRequestHandler: function (value) {
+                        setOnRequest: function (value) {
                             if (angular.isFunction(handler)) {
                                 this.onRequest = handler;
 
