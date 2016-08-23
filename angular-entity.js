@@ -278,7 +278,7 @@
                                         this.compiledRoutes[k] = route = new Route(route, compileStrictly, appendParams, defaults);
 
                                         routes[k] = this[k] = function (params, data, options) {
-                                            return $q(function (resolve, reject) {
+                                            var promise = $q(function (resolve, reject) {
                                                 var rawResponse = this.rawResponse;
 
                                                 var responseSimpleOnce = this.responseSimpleOnce;
@@ -287,7 +287,7 @@
                                                     options = this.onBeforeRequest(options);
                                                 }
 
-                                                var request = route[method](params, data, options).then(
+                                                return route[method](params, data, options).then(
                                                     function (res) {
                                                         var handler = this.successHandler || successHandler;
 
@@ -319,11 +319,13 @@
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this)
                                                 );
-
-                                                if (this.onRequest) {
-                                                    this.onRequest(request);
-                                                }
                                             }.bind(this));
+
+                                            if (this.onRequest) {
+                                                promise = this.onRequest(promise);
+                                            }
+
+                                            return promise;
                                         }
                                     } else {
                                         throw new Error('Http method is not defined: ' + method);
