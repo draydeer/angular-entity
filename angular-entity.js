@@ -160,6 +160,7 @@
                         this.successHandler = null;
                         this.onAfterRequest = null;
                         this.onBeforeRequest = null;
+                        this.onRequest = null;
 
                         this.addRoutes(routes);
                     }
@@ -222,6 +223,16 @@
                             throw new Error('Invalid [onBeforeRequest] handler.');
                         },
 
+                        setOnRequest: function (handler) {
+                            if (angular.isFunction(handler)) {
+                                this.onRequest = handler;
+
+                                return this;
+                            }
+
+                            throw new Error('Invalid [onRequest] handler.');
+                        },
+
                         addRoutes: function (routes) {
                             if (angular.isObject(routes)) {
                                 forEach(routes, function (v, k) {
@@ -267,7 +278,7 @@
                                         this.compiledRoutes[k] = route = new Route(route, compileStrictly, appendParams, defaults);
 
                                         routes[k] = this[k] = function (params, data, options) {
-                                            return $q(function (resolve, reject) {
+                                            var promise = $q(function (resolve, reject) {
                                                 var rawResponse = this.rawResponse;
 
                                                 var responseSimpleOnce = this.responseSimpleOnce;
@@ -276,7 +287,7 @@
                                                     options = this.onBeforeRequest(options);
                                                 }
 
-                                                route[method](params, data, options).then(
+                                                return route[method](params, data, options).then(
                                                     function (res) {
                                                         var handler = this.successHandler || successHandler;
 
@@ -305,6 +316,12 @@
                                                     }.bind(this)
                                                 );
                                             }.bind(this));
+
+                                            if (this.onRequest) {
+                                                promise = this.onRequest(promise);
+                                            }
+
+                                            return promise;
                                         }
                                     } else {
                                         throw new Error('Http method is not defined: ' + method);
