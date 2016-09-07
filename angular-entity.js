@@ -284,11 +284,9 @@
                                                             handler(res.data, res);
                                                         }
 
-                                                        resolve(
-                                                            (rawResponse && responseSimpleOnce === false)
-                                                                ? res :
-                                                                res.data
-                                                        );
+                                                        res = rawResponse && responseSimpleOnce === false ? res : res.data;
+
+                                                        resolve(this.onAfterRequest ? this.onAfterRequest(res) :  res);
 
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this),
@@ -299,11 +297,9 @@
                                                             handler(err.data, err.status, err);
                                                         }
 
-                                                        reject(
-                                                            (rawResponse && responseSimpleOnce === false)
-                                                                ? err :
-                                                                err.status
-                                                        );
+                                                        err = rawResponse && responseSimpleOnce === false ? err : err.data;
+
+                                                        reject(err);
 
                                                         this.responseSimpleOnce = false;
                                                     }.bind(this)
@@ -590,7 +586,7 @@
                         setEntire: function (value) {
                             this.scope[this.mappedProperty] = value;
 
-                            return this;
+                            return this.flush();
                         },
 
                         setModelMapper: function (value) {
@@ -727,12 +723,20 @@
                             }.bind(this));
                         },
 
-                        flush: function () {
-                            forEach(this.modelCache, function (v) {
-                                v.$$free();
-                            });
+                        flush: function (k) {
+                            if (k) {
+                                if (k in this.modelCache) {
+                                    this.modelCache[k].$$free();
+                                }
 
-                            this.modelCache = {};
+                                delete this.modelCache[k];
+                            } else {
+                                forEach(this.modelCache, function (v) {
+                                    v.$$free();
+                                });
+
+                                this.modelCache = {};
+                            }
 
                             return this;
                         },
@@ -801,12 +805,14 @@
                         },
 
                         remove: function (k) {
-                            delete this.modelCache[this.scope[this.mappedProperty][k].$$isCached];
+                            if (k in this.scope[this.mappedProperty]) {
+                                this.flush(this.scope[this.mappedProperty].$$isCached);
 
-                            if (angular.isArray(this.scope[this.mappedProperty])) {
-                                this.scope[this.mappedProperty].splice(k, 1);
-                            } else {
-                                delete this.scope[this.mappedProperty][k];
+                                if (angular.isArray(this.scope[this.mappedProperty])) {
+                                    this.scope[this.mappedProperty].splice(k, 1);
+                                } else {
+                                    delete this.scope[this.mappedProperty][k];
+                                }
                             }
 
                             return this;
